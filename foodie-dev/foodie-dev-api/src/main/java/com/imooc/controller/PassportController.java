@@ -1,18 +1,29 @@
 package com.imooc.controller;
 
+import com.imooc.pojo.Users;
 import com.imooc.pojo.bo.UserBO;
 import com.imooc.service.UserService;
+import com.imooc.utils.CookieUtils;
 import com.imooc.utils.IMOOCJSONResult;
+import com.imooc.utils.JsonUtils;
+import com.imooc.utils.MD5Utils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Api(value = "注册登录", tags = {"用于注册登录的相关接口"})
 @RestController
 @RequestMapping("/passport")
 public class PassportController {
+
+    private final static Logger logger = LoggerFactory.getLogger(HelloWorldController.class);
 
     @Autowired
     private UserService userService;
@@ -37,34 +48,110 @@ public class PassportController {
 
     @ApiOperation(value = "用户注册", notes = "用户注册", httpMethod = "POST")
     @PostMapping("/regist")
-    public IMOOCJSONResult regist(@RequestBody UserBO userBO){
+    public IMOOCJSONResult regist(@RequestBody UserBO userBO,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) {
 
         String username = userBO.getUsername();
         String password = userBO.getPassword();
-        String confirmPw = userBO.getCnfirmPassword();
+        String confirmPwd = userBO.getConfirmPassword();
 
         // 0. 判断用户名和密码必须不为空
-        if (StringUtils.isBlank(username)||StringUtils.isBlank(password)||StringUtils.isBlank(confirmPw)){
-            return IMOOCJSONResult.errorException("用户名或密码不为空！");
+        if (StringUtils.isBlank(username) ||
+                StringUtils.isBlank(password) ||
+                StringUtils.isBlank(confirmPwd)) {
+            return IMOOCJSONResult.errorMsg("用户名或密码不能为空");
         }
+
         // 1. 查询用户名是否存在
         boolean isExist = userService.queryUsernameIsExist(username);
-
-        if (isExist){
-            return IMOOCJSONResult.errorException("用户名已存在！");
+        if (isExist) {
+            return IMOOCJSONResult.errorMsg("用户名已经存在");
         }
+
         // 2. 密码长度不能少于6位
-        if (password.length()<6){
-            return IMOOCJSONResult.errorException("密码长度不能少于6位！");
+        if (password.length() < 6) {
+            return IMOOCJSONResult.errorMsg("密码长度不能少于6");
         }
 
         // 3. 判断两次密码是否一致
-        if (!password.equals(confirmPw)){
-            return IMOOCJSONResult.errorException("密码不一致！");
+        if (!password.equals(confirmPwd)) {
+            return IMOOCJSONResult.errorMsg("两次密码输入不一致");
         }
+
         // 4. 实现注册
-        userService.createUser(userBO);
-        return IMOOCJSONResult.ok(userBO);
+        Users userResult = userService.createUser(userBO);
+
+        userResult = setNullProperty(userResult);
+
+        CookieUtils.setCookie(request, response, "user",
+                JsonUtils.objectToJson(userResult), true);
+
+        // TODO 生成用户token，存入redis会话
+        // TODO 同步购物车数据
+
+        return IMOOCJSONResult.ok();
+    }
+
+
+    @ApiOperation(value = "用户登录", notes = "用户登录", httpMethod = "POST")
+    @PostMapping("/login")
+    public IMOOCJSONResult login(@RequestBody UserBO userBO, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        String username = userBO.getUsername();
+        String password = userBO.getPassword();
+
+        // 0. 判断用户名和密码必须不为空
+        if (StringUtils.isBlank(username) ||
+                StringUtils.isBlank(password)) {
+            return IMOOCJSONResult.errorMsg("用户名或密码不能为空");
+        }
+
+        // 1. 实现登录
+        Users userResult = userService.queryUserForLogin(username,
+                MD5Utils.getMD5Str(password));
+
+        if (userResult == null) {
+            return IMOOCJSONResult.errorMsg("用户名或密码不正确");
+        }
+
+        userResult = setNullProperty(userResult);
+
+        CookieUtils.setCookie(request, response, "user",
+                JsonUtils.objectToJson(userResult), true);
+
+
+        // TODO 生成用户token，存入redis会话
+        // TODO 同步购物车数据
+
+        return IMOOCJSONResult.ok(userResult);
+    }
+
+    @ApiOperation(value = "用户退出", notes = "用户退出", httpMethod = "POST")
+    @PostMapping("/logout")
+    public IMOOCJSONResult logout(@RequestParam String userId, HttpServletRequest request, HttpServletResponse response){
+
+        //清除用户相关信息的cookie
+        CookieUtils.deleteCookie(request, response, "user");
+
+        //todo 用户退出登录，需要清空购物车
+        //todo 分布式会话中需要清除用户数据
+
+        return IMOOCJSONResult.ok();
+
+    }
+
+    private Users setNullProperty(Users userResult){
+
+        userResult.setEmail(null);
+        userResult.setBirthday(null);
+        userResult.setPassword(null);
+        userResult.setCreatedTime(null);
+        userResult.setMobile(null);
+        userResult.setRealname(null);
+        userResult.setUpdatedTime(null);
+
+        return userResult;
     }
 
 }

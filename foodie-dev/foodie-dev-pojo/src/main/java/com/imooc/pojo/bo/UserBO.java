@@ -29,11 +29,11 @@ public class UserBO {
         this.password = password;
     }
 
-    public String getCnfirmPassword() {
+    public String getConfirmPassword() {
         return confirmPassword;
     }
 
-    public void setCnfirmPassword(String confirmPassword) {
+    public void setConfirmPassword(String confirmPassword) {
         this.confirmPassword = confirmPassword;
     }
 }
