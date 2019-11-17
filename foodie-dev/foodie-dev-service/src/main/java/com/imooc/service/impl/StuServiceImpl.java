@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StuServiceImpl implements StuService {
 
     @Autowired
-    StuMapper stuMapper;
+    private StuMapper stuMapper;
 
     @Transactional(propagation = Propagation.SUPPORTS)
     @Override
