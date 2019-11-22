@@ -2,6 +2,7 @@ F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\controll
 F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\controller\ItemsController.java
 F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\aspect\ServiceLogAspect.java
 F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\config\CorsConfig.java
+F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\controller\BaseController.java
 F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\controller\IndexController.java
 F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\Application.java
 F:\gitimooc\mooc-shop\foodie-dev\foodie-dev-api\src\main\java\com\imooc\config\Swagger2.java

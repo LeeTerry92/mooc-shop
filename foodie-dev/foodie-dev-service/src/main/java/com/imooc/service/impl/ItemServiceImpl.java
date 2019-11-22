@@ -7,7 +7,10 @@ import com.imooc.mapper.*;
 import com.imooc.pojo.*;
 import com.imooc.pojo.vo.CommentLevelCountsVO;
 import com.imooc.pojo.vo.ItemCommentVO;
+import com.imooc.pojo.vo.SearchItemsVO;
+import com.imooc.pojo.vo.ShopcartVO;
 import com.imooc.service.ItemService;
+import com.imooc.utils.DesensitizationUtil;
 import com.imooc.utils.PagedGridResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,9 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ItemServiceImpl implements ItemService {
@@ -120,11 +121,55 @@ public class ItemServiceImpl implements ItemService {
          */
         PageHelper.startPage(page, pageSize);
 
+        /**
+         * 脱敏处理
+         */
         for(ItemCommentVO vo:list){
-
+            vo.setNickname(DesensitizationUtil.commonDisplay(vo.getNickname()));
         }
 
         return setterPagedGrid(list, page);
+    }
+
+    @Override
+    public PagedGridResult searchItems(String keywords, String sort, Integer page, Integer pageSize) {
+
+        Map<String,Object> map = new HashMap<>();
+        map.put("keywords",keywords);
+        map.put("sort",sort);
+
+        List<SearchItemsVO> list = itemsMapperCustom.searchItems(map);
+
+        PageHelper.startPage(page, pageSize);
+
+        return setterPagedGrid(list,page);
+    }
+
+    @Override
+    public PagedGridResult searchItemsBYThirdCat(String catId, String sort, Integer page, Integer pageSize) {
+
+        Map<String,Object> map = new HashMap<>();
+        map.put("catId",catId);
+        map.put("sort",sort);
+
+        List<SearchItemsVO> list = itemsMapperCustom.searchItemsBYThirdCat(map);
+
+        PageHelper.startPage(page, pageSize);
+
+        return setterPagedGrid(list,page);
+
+    }
+
+    @Override
+    public List<ShopcartVO> queryItemBySpecIds(String itemSpecIds) {
+
+        String[] arr = itemSpecIds.split(",");
+
+        ArrayList<String> idLists = new ArrayList<>();
+
+        Collections.addAll(idLists,arr);
+
+        return itemsMapperCustom.queryItemsBySpecIds(idLists);
     }
 
     private Integer getCommentCounts(String itemId,Integer level){

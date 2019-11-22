@@ -143,13 +143,12 @@ public class PassportController {
 
     private Users setNullProperty(Users userResult){
 
-        userResult.setEmail(null);
-        userResult.setBirthday(null);
         userResult.setPassword(null);
-        userResult.setCreatedTime(null);
         userResult.setMobile(null);
-        userResult.setRealname(null);
+        userResult.setEmail(null);
+        userResult.setCreatedTime(null);
         userResult.setUpdatedTime(null);
+        userResult.setBirthday(null);
 
         return userResult;
     }
