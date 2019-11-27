@@ -128,7 +128,18 @@
   </select>
 
 
+<update id="decreaseItemSpecStock">
 
+    update
+        item_spec
+    SET
+        stock=stock - #{pendingCounts}
+    where
+        id = #{specId}
+    and
+        stock >= #{pendingCounts}
+
+</update>
 
 
 </mapper>

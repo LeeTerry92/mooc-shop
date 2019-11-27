@@ -3,6 +3,7 @@ package com.imooc.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.imooc.enums.CommentLevel;
+import com.imooc.enums.YesOrNo;
 import com.imooc.mapper.*;
 import com.imooc.pojo.*;
 import com.imooc.pojo.vo.CommentLevelCountsVO;
@@ -131,6 +132,7 @@ public class ItemServiceImpl implements ItemService {
         return setterPagedGrid(list, page);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public PagedGridResult searchItems(String keywords, String sort, Integer page, Integer pageSize) {
 
@@ -145,6 +147,7 @@ public class ItemServiceImpl implements ItemService {
         return setterPagedGrid(list,page);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public PagedGridResult searchItemsBYThirdCat(String catId, String sort, Integer page, Integer pageSize) {
 
@@ -160,6 +163,7 @@ public class ItemServiceImpl implements ItemService {
 
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public List<ShopcartVO> queryItemBySpecIds(String itemSpecIds) {
 
@@ -170,6 +174,52 @@ public class ItemServiceImpl implements ItemService {
         Collections.addAll(idLists,arr);
 
         return itemsMapperCustom.queryItemsBySpecIds(idLists);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public ItemsSpec queryItemSpecById(String itemSpecId) {
+
+        return itemsSpecMapper.selectByPrimaryKey(itemSpecId);
+
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    @Override
+    public String queryItemMainImgById(String itemId) {
+
+        ItemsImg itemsImg = new ItemsImg();
+        itemsImg.setItemId(itemId);
+        itemsImg.setIsMain(YesOrNo.YES.type);
+
+        ItemsImg result = itemsImgMapper.selectOne(itemsImg);
+
+
+        return result!=null?result.getUrl():"";
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    @Override
+    public void decreaseItemSpecStock(String itemSpecId, Integer buyCounts) {
+
+
+/*        ItemsSpec itemsSpec = queryItemSpecById(itemSpecId);
+        Integer stock = itemsSpec.getStock();
+
+        if(stock - buyCounts<0){
+
+        }
+
+        itemsSpec.setStock(stock-buyCounts);
+
+        itemsSpecMapper.updateByPrimaryKeySelective(itemsSpec);*/
+
+        int result = itemsMapperCustom.decreaseItemSpecStock(itemSpecId, buyCounts);
+
+        if (result==0){
+
+            throw new RuntimeException("订单创建失败，原因：库存不足!");
+        }
     }
 
     private Integer getCommentCounts(String itemId,Integer level){
